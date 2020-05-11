@@ -32,8 +32,8 @@ def findIndex(simple):
     return index
 path='e:\\signalP\\'
 filepath=os.listdir(path)
-print(filepath[9])
-f=we.open(path+filepath[9],'rb')
+print(filepath[11])
+f=we.open(path+filepath[11],'rb')
 params = f.getparams()
 nchannels, sampwidth, framerate, nframes = params[:4]
 strData = f.readframes(nframes)#读取音频，字符串格式
@@ -58,10 +58,11 @@ freq_indices=[]
 tm=np.array([[1,2,3,65],[4,5,6,66],[7,8,9,67],[42,0,35,68]])
 limit=0.5*max(waveData)
 datalength=len(time)
+dtmf_number=[]
 for fi in f:
     freq_indices.append(int(fi/fs*N))
 for i in range(0,datalength):
-    if j>=11:
+    if j>=10:
         break
     if np.abs(waveData[k])>limit :
         x1=waveData[k:k+N]
@@ -69,8 +70,10 @@ for i in range(0,datalength):
         num.append(findIndex(xk[0:3]))
         num.append(findIndex(xk[4:7]))
         print(tm[num[j*2],num[j*2+1]])
+        dtmf_number.append(tm[num[j*2],num[j*2+1]])
         k=k+N
         j=j+1
     else:
         k=k+1
-
+num_str="".join([str(x) for x in dtmf_number])
+print(num_str)
