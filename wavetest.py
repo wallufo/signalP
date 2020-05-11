@@ -29,7 +29,6 @@ def findIndex(simple):
         if simple[i]==max(simple):
             index=i
             break
-    print(index)
     return index
 path='e:\\signalP\\'
 filepath=os.listdir(path)
@@ -42,24 +41,42 @@ waveData = np.fromstring(strData,dtype=np.int16)#将字符串转化为int
 waveData = waveData*1.0/(max(abs(waveData)))#wave幅值归一化
 f.close()
 time = np.arange(0,nframes)*(1.0 / framerate)
-# plt.plot(time,waveData)
-# plt.xlabel("Time(s)")
-# plt.ylabel("Amplitude")
-# plt.title("Single channel wavedata")
-# plt.grid('on')#标尺，on：有，off:无。
-# plt.show()
+plt.plot(time,waveData)
+plt.xlabel("Time(s)")
+plt.ylabel("Amplitude")
+plt.title("Single channel wavedata")
+plt.show()
 f=[697,770,852,941,1209,1336,1477,1633]
-N=2000
+N=8000
 i=0
+k=0
+j=0
 fs=8000
 xk=[]
 num=[]
 freq_indices=[]
 tm=np.array([[1,2,3,65],[4,5,6,66],[7,8,9,67],[42,0,35,68]])
+limit=0.5*max(waveData)
+print(limit)
+datalength=len(time)
 for fi in f:
-    freq_indices.append(int(fi/fs*N+1))
-xk=goertzel(waveData,freq_indices,N)
-num.append(findIndex(xk[0:3]))
-num.append(findIndex(xk[4:7]))
-print(tm[num[0],num[1]])
-
+    freq_indices.append(int(fi/fs*N))
+for i in range(0,datalength-1):
+    if j>=10:
+        break
+    if np.abs(waveData[k])>limit :
+        x1=waveData[k:k+N]
+        xk=goertzel(x1,freq_indices,N)
+        num.append(findIndex(xk[0:3]))
+        num.append(findIndex(xk[4:7]))
+        print(tm[num[j*2],num[j*2+1]])
+        k=k+N
+        j=j+1
+    else:
+        k=k+1
+print(num)
+# x1=waveData[6*N:7*N]
+# xk=goertzel(x1,freq_indices,N)
+# num.append(findIndex(xk[0:3]))
+# num.append(findIndex(xk[4:7]))
+# print(tm[num[0],num[1]])
