@@ -176,10 +176,4 @@ class Ui_MainWindow(object):
                 k=k+1
         num_str="".join([str(x) for x in dtmf_number])
         self.P_number.setText(num_str)
-if __name__ == "__main__":  
-    app = QApplication(sys.argv) 
-    widgets = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(widgets)
-    widgets.show()
-    sys.exit(app.exec_())
+
