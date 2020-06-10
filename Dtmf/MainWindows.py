@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 from PyQt5 import QtCore, QtGui, QtWidgets
 from ui_mainwindow import Ui_MainWindow
 from PyQt5.QtWidgets import QFileDialog
@@ -9,6 +10,9 @@ import struct
 import scipy as sc
 import math
 import matplotlib.pyplot as plt
+import os
+from hashlib import md5
+import time
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
@@ -57,8 +61,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             dtmf_data=np.hstack((dtmf_data,z))
             dtmf_wave=np.hstack((dtmf_wave,dtmf_data))
         #save wav file
-        DirPath = './Dtmf/sine.wav'
-        wf = we.open(DirPath, 'wb')
+        base_dir=os.path.dirname(__file__)
+        print(base_dir)
+        now = str(number) + str(time.time())
+        print(now)
+        print(type(now))
+        fname=md5(now.encode('utf8')).hexdigest()
+        print(fname)
+        DirPath = fname+'.wav'
+        print(DirPath)
+        Path=os.path.join(base_dir,DirPath)
+        print(Path)
+        wf = we.open(Path, 'wb')
         wf.setnchannels(1)
         wf.setframerate(framerate)
         wf.setsampwidth(sample_width)
@@ -67,77 +81,80 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             wf.writeframesraw(data)
         wf.close()
     def processAudio(self):
-        def goertzel(simple,freq_indices,N):
-            w = []
-            c = []
-            p = []
-            for i in range(0,8):
-                w.append(2*np.pi*freq_indices[i]/N)
-                wc=w[i]
-                ans=2*np.cos(wc)
-                c.append(ans)
-            q1=q2=0
-            for i in range(0,8):
-                for j in range(0,N):
-                    q0=c[i]*q1-q2+simple[j]
-                    q2=q1
-                    q1=q0
-                ans=q1*q1+q2*q2-c[i]*q1*q2
-                p.append(ans)
-                q1=q2=0
-            return p
-        def findIndex(simple):
-            for i in range(0,3):
-                if simple[i]==max(simple):
-                    index=i
-                    break
-            return index
-        Path=self.LbPath.text()
-        f=we.open(Path,'rb')
-        params = f.getparams()
-        nchannels, sampwidth, framerate, nframes = params[:4]
-        strData = f.readframes(nframes)#读取音频，字符串格式
-        waveData = np.fromstring(strData,dtype=np.int16)#将字符串转化为int
-        waveData = waveData*1.0/(max(abs(waveData)))#wave幅值归一化
-        f.close()
-        time = np.arange(0,nframes)*(1.0 / framerate)
-        f=[697,770,852,941,1209,1336,1477,1633]
-        N=8000
-        i=0
-        k=0
-        j=0
-        fs=8000
-        xk=[]
-        num=[]
-        freq_indices=[]
-        tm=np.array([[1,2,3,65],[4,5,6,66],[7,8,9,67],[42,0,35,68]])
-        limit=0.5*max(waveData)
-        datalength=len(time)
-        dtmf_number=[]
         num_dtmf=self.textEdit.toPlainText()
-        print(num_dtmf)
-        for fi in f:
-            freq_indices.append(int(fi/fs*N))
-        for i in range(0,datalength):
-            if j>=len(num_dtmf):
-                break
-            if np.abs(waveData[k])>limit :
-                x1=waveData[k:k+N]
-                xk=goertzel(x1,freq_indices,N)
-                num.append(findIndex(xk[0:3]))
-                num.append(findIndex(xk[4:7]))
-                print(tm[num[j*2],num[j*2+1]])
-                dtmf_number.append(tm[num[j*2],num[j*2+1]])
-                k=k+N
-                j=j+1
-            else:
-                k=k+1
-        num_str="".join([str(x) for x in dtmf_number])
-        print(num_str)
-        self.Lbnumber.setText(num_str)
-        plt.plot(time,waveData)
-        plt.xlabel("Time(s)")
-        plt.ylabel("Amplitude")
-        plt.title("Single channel wavedata")
-        plt.show()
+        if num_dtmf=="":
+            QMessageBox.critical(self, "错误提示框", "没有输入生成数字！", QMessageBox.Yes | QMessageBox.No)
+        else:
+            def goertzel(simple,freq_indices,N):
+                w = []
+                c = []
+                p = []
+                for i in range(0,8):
+                    w.append(2*np.pi*freq_indices[i]/N)
+                    wc=w[i]
+                    ans=2*np.cos(wc)
+                    c.append(ans)
+                q1=q2=0
+                for i in range(0,8):
+                    for j in range(0,N):
+                        q0=c[i]*q1-q2+simple[j]
+                        q2=q1
+                        q1=q0
+                    ans=q1*q1+q2*q2-c[i]*q1*q2
+                    p.append(ans)
+                    q1=q2=0
+                return p
+            def findIndex(simple):
+                for i in range(0,3):
+                    if simple[i]==max(simple):
+                        index=i
+                        break
+                return index
+            Path=self.LbPath.text()
+            f=we.open(Path,'rb')
+            params = f.getparams()
+            nchannels, sampwidth, framerate, nframes = params[:4]
+            strData = f.readframes(nframes)#读取音频，字符串格式
+            waveData = np.fromstring(strData,dtype=np.int16)#将字符串转化为int
+            waveData = waveData*1.0/(max(abs(waveData)))#wave幅值归一化
+            f.close()
+            time = np.arange(0,nframes)*(1.0 / framerate)
+            f=[697,770,852,941,1209,1336,1477,1633]
+            N=8000
+            i=0
+            k=0
+            j=0
+            fs=8000
+            xk=[]
+            num=[]
+            freq_indices=[]
+            tm=np.array([[1,2,3,65],[4,5,6,66],[7,8,9,67],[42,0,35,68]])
+            limit=0.5*max(waveData)
+            datalength=len(time)
+            dtmf_number=[]
+            print(num_dtmf)
+            for fi in f:
+                freq_indices.append(int(fi/fs*N))
+            for i in range(0,datalength):
+                if j>=len(num_dtmf):
+                    break
+                if np.abs(waveData[k])>limit :
+                    x1=waveData[k:k+N]
+                    xk=goertzel(x1,freq_indices,N)
+                    num.append(findIndex(xk[0:3]))
+                    num.append(findIndex(xk[4:7]))
+                    print(tm[num[j*2],num[j*2+1]])
+                    dtmf_number.append(tm[num[j*2],num[j*2+1]])
+                    k=k+N
+                    j=j+1
+                else:
+                    k=k+1
+            num_str="".join([str(x) for x in dtmf_number])
+            print(num_str)
+            self.Lbnumber.setText(num_str)
+            plt.plot(time,waveData)
+            plt.xlabel("Time")
+            plt.ylabel("Am")
+            plt.title("Data")
+            plt.show()
     

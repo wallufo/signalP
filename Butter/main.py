@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 from PyQt5 import QtCore, QtGui, QtWidgets
-from MainWindows import MainWindow
+from MainWindow import MainWindow
 import sys
 
 if __name__ == "__main__":
