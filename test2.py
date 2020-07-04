@@ -13,7 +13,7 @@ N, Wn = buttord(np.pi*2*2000, np.pi*2*1000, 1, 20,True)
 
 wn=2*1000/fs 
 b, a = butter(N,wn, 'high')
-w,h=freqs(b,a,worN=np.logspace(-1, 2, 1000))
+w,h=freqs(b,a)
 filterY = lfilter(b, a, y)
 f = np.linspace(0, fs, T*fs, endpoint=False) 
 ff = np.fft.fft(y)
